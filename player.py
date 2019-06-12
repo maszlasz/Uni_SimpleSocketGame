@@ -1,17 +1,23 @@
 class Player:
 
-    def __init__(self,name):
-        self.name = name
+    def __init__(self,ip):
+        self.ip = ip
         #[nazwa, ilość]
         self.possesions = [["gold", 0], ["silver", 0], ["copper", 0]]
         self.money = 3000
+        self.name=""
+
+    def set_name(self,name):
+        self.name = name
     
     def to_string(self):
-        string = "Name: " + self.name + "\nMoney: " + str(self.money) + "\nPossesions: "
+        string = "\n\nName: " + self.name + "\nMoney: " + str(self.money) + "\nPossesions: "
         for p in self.possesions:
             string = string + "\n " + p[0] + " " + str(p[1])
         string = string + "\n"
         return string
+
+    
 
     def has_enough_possesions(self,product_id,amount):
         return self.possesions[product_id][1] >= amount

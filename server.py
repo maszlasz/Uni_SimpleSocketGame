@@ -2,6 +2,7 @@ import socket
 import sys
 import threading
 import queue
+from stock import Stock
 from time import sleep
 
 host = socket.gethostname()  # #
@@ -15,6 +16,7 @@ except socket.error as ex:
     sys.exit(0)
 
 
+
 try:
     s.bind((host, port))
     print("SOCKET BOUND TO PORT: " + str(port))
@@ -24,6 +26,9 @@ except socket.error as ex:
 
 s.listen(7)
 
+#clients_left
+#clients_current
+
 
 def client_thread(conn, lock, q):
     conn.setblocking(False)
@@ -31,9 +36,11 @@ def client_thread(conn, lock, q):
 
     while True:
         try:
+            
+            
+
             if conn.recv(1024).decode() == "START":
                 conn.sendall("OK, WAITING FOR OTHERS".encode())
-
                 # locking global value from other threads
                 lock.acquire()
                 clients_current += 1
@@ -53,6 +60,7 @@ def client_thread(conn, lock, q):
 
     # GAME IN PROGRESS
     while True:
+        conn.sendall(st.player_state(conn.getpeername()[0] + ':' + str(conn.getpeername()[1])).encode())
         conn.sendall("STARTING IN:".encode())
 
         for i in reversed(range(1, 6)):
@@ -70,9 +78,11 @@ def client_thread(conn, lock, q):
         while q.empty():
             try:
                 data = conn.recv(1024)
+                reply = handle_request(data.decode(),conn.getpeername()[0] + 
+                    ':' + str(conn.getpeername()[1]))
                 print('RECEIVED: ' + data.decode() + ', FROM: ' + conn.getpeername()[0] + ':' +
                       str(conn.getpeername()[1]))
-                reply = "->" + data.decode()
+                #reply = "->" + data.decode()
                 conn.sendall(reply.encode())
             except socket.error:
                 pass
@@ -101,6 +111,8 @@ def client_thread(conn, lock, q):
     conn.close()
 
 
+
+
 def connect_clients():
     is_first_client = True
     global clients_total
@@ -115,6 +127,8 @@ def connect_clients():
         if clients_left:
             thread_conn, address = s.accept()
             print("CONNECTED TO " + address[0] + ":" + str(address[1]))
+            st.add_player(address[0] + ":" + str(address[1]))
+            st.players[-1].set_name("player " + str(len(st.players)))
 
             if is_first_client:
                 thread_conn.sendall("YOU'RE CONNECTED TO THE SERVER. ENTER THE NUMBER OF PLAYERS (2-8)".encode())
@@ -152,19 +166,55 @@ def connect_clients():
             break
 
 
+def handle_request(data,player):
+    try:
+
+        split = data.split()
+        for i in range(len(st.players)):
+            if player == st.players[i].ip:
+                player_id = i
+
+        if split[0] == "buy":
+            for i in range(len(st.stock)):
+                if st.stock[i][0] == split[1]:
+                    return(st.sell_to_player(player_id,i,int(split[2])))
+
+        if split[0] == "sell":
+            for i in range(len(st.stock)):
+                if st.stock[i][0] == split[1]:
+                    return(st.buy_from_player(player_id,i,int(split[2])))
+        
+        return "Wrong request."
+
+    except (ValueError, IndexError):
+        return("Wrong request.")
+
+def set_player_name(name,player_ip):
+    try:
+        for i in range(len(st.players)):
+            if player_ip == st.players[i].ip:
+                st.players[i].set_name(name)
+    except IndexError:
+        pass
+    
+
 clients_total = 1
 clients_current = 0
 clients_left = 1
+
+clients=[]
 
 rounds_total = 3
 rounds_current = 1
 
 threads = []
 queues = []
-round_time = 5
+round_time = 10
 break_time = 3
 
+st=Stock()
 connect_clients()
+
 
 # WAITING FOR CLIENTS TO CONFIRM START
 while clients_total != clients_current:
@@ -172,8 +222,14 @@ while clients_total != clients_current:
     print("WAITING FOR: " + str(clients_total-clients_current) + " MORE CLIENTS")
 
 print("\n\nALL CLIENTS READY. STARTING THE GAME")
+print("\n\nREQUEST SHOULD BE <action> <product> <amount>")
+print("\n\nE.G. buy gold 10; sell copper 15")
+st.print_state()
+
 for q in queues:
     q.put(".")
+
+
 
 while True:
     print("\nCOUNTING DOWN")
@@ -192,6 +248,7 @@ while True:
             q.put("EXIT")
 
         print("THE GAME HAS ENDED")
+        st.print_state()
         break
     else:
         for q in queues:
@@ -199,6 +256,9 @@ while True:
 
     print("START BREAK")
     # TIME FOR PRICE CHANGE ETC.
+
+    st.calculate_new_prices()
+    st.print_state()
     sleep(break_time)
     print("END BREAK")
 
@@ -213,4 +273,5 @@ for t in threads:
     t.join()
 
 print("THE END")
+st.show_results()
 exit(0)
