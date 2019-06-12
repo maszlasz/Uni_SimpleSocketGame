@@ -6,7 +6,7 @@ class Stock:
          self.players = []
           #[nazwa,aktualna ilość,aktualna cena, początkowa ilość, początkowa cena]
           #początkowe wartości są używane tylko do policzenia zmian ceny
-         self.stock = [["gold", 200, 150, 200, 150], ["silver", 200, 120, 200, 120]]
+         self.stock = [["gold", 200, 150, 200, 150], ["silver", 200, 120, 200, 120], ["copper", 200, 80, 200, 80]]
 
     def add_player(self,name):
          self.players.append(Player(name))
@@ -49,13 +49,14 @@ class Stock:
         return "Transcation succesful."
         
     def calculate_new_price(self,product_id):
+        
         product = self.stock[product_id] #dla przejrzystości
         #id: pruduct[0] = nazwa, [1] = aktualna ilość, [2] = aktualna cena,
         # [3] = początkowa ilość, [4] = początkowa cena
         if product[1] <= product[3]:
             self.stock[product_id][2] = product[4] + ((product[1] - product[3]) * (product[1] - product[3])) * 0.01 
         if product[1] > product[3]:
-            self.stock[product_id][2] = product[4] + ((product[1] - product[3]) * (product[1] - product[3])) * 0.01 
+            self.stock[product_id][2] = product[4] - ((product[1] - product[3]) * (product[1] - product[3])) * 0.01 
 
 
 

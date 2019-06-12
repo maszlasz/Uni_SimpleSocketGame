@@ -3,7 +3,7 @@ class Player:
     def __init__(self,name):
         self.name = name
         #[nazwa, ilość]
-        self.possesions = [["gold", 0],["silver", 0]]
+        self.possesions = [["gold", 0], ["silver", 0], ["copper", 0]]
         self.money = 3000
     
     def to_string(self):
