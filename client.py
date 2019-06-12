@@ -2,6 +2,7 @@ from socket import *
 from threading import Thread
 
 host = gethostname()  # #
+#host = '10.129.5.203'
 port = 5555
 
 s = socket(AF_INET, SOCK_STREAM)
@@ -32,6 +33,6 @@ Thread(target=from_server).start()
 
 while True:
     try:
-        s.send(input().encode())
+         s.send(input().encode())
     except OSError:
         exit(0)
