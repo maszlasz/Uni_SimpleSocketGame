@@ -1,16 +1,12 @@
 from socket import *
-from threading import Thread
-
-host = gethostname()  # #
-port = 5555
+from threading import *
 
 s = socket(AF_INET, SOCK_STREAM)
 
 try:
-    s.connect((host, port))
-    s.setblocking(False)
+    s.connect((gethostbyname(gethostname()), 6666))
+    # s.connect(('', 6666))
 except error:
-    print("COULDN'T REACH THE SERVER")
     exit(1)
 
 
@@ -18,7 +14,7 @@ def from_server():
     while True:
         try:
             data = s.recv(1024).decode()
-            print(": ", data)
+            print(data)
 
             if data == "EXIT":
                 s.close()
@@ -28,7 +24,6 @@ def from_server():
 
 
 Thread(target=from_server).start()
-
 
 while True:
     try:
