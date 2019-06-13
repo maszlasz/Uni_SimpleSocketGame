@@ -96,8 +96,8 @@ def process_queries():
             if stock.stock_buyable(query.stock_name, query.quantity, query.player.money, query.over_percentage):
 
                 query.player.add_stock(query.stock_name, query.quantity)
-                query.player.reduce_money(stock.get_stock_price(query.stock_name) *
-                                          query.quantity * (1 + query.over_percentage / 100))
+                query.player.reduce_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                          query.quantity * (1 + query.over_percentage / 100)))
                 stock.reduce_stock(query.stock_name, query.quantity)
 
                 query.player.messages.append("-> BOUGHT " + str(query.quantity) + " OF " + str(query.stock_name))
@@ -106,8 +106,8 @@ def process_queries():
                                           (query.get_stock_price(query.stock_name) * (1 + query.over_percentage)))
                 if tmp_quantity:
                     query.player.add_stock(query.stock_name, tmp_quantity)
-                    query.player.reduce_money(stock.get_stock_price(query.stock_name) *
-                                              tmp_quantity * (1 + query.over_percentage / 100))
+                    query.player.reduce_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                              tmp_quantity * (1 + query.over_percentage / 100)))
                     stock.reduce_stock(query.stock_name, tmp_quantity)
 
                     query.player.messages.append("-> BOUGHT ONLY " + str(tmp_quantity) + " OF " + str(query.stock_name) +
@@ -123,8 +123,8 @@ def process_queries():
                 tmp_quantity = stock.get_stock_quantity(query.stock_name)
 
                 query.player.add_stock(query.stock_name, stock.get_stock_quantity(query.stock_name))
-                query.player.reduce_money(stock.get_stock_price(query.stock_name) *
-                                          stock.get_stock_quantity(query.stock_name) * (1 + query.over_percentage / 100))
+                query.player.reduce_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                          stock.get_stock_quantity(query.stock_name) * (1 + query.over_percentage / 100)))
                 stock.reduce_stock(query.stock_name, stock.get_stock_quantity(query.stock_name))
 
                 query.player.messages.append("-> BOUGHT ONLY " + str(tmp_quantity) + " OF " + str(query.stock_name))
@@ -133,8 +133,8 @@ def process_queries():
                                           (query.get_stock_price(query.stock_name) * (1 + query.over_percentage)))
                 if tmp_quantity:
                     query.player.add_stock(query.stock_name, tmp_quantity)
-                    query.player.reduce_money(stock.get_stock_price(query.stock_name) *
-                                              tmp_quantity * (1 + query.over_percentage / 100))
+                    query.player.reduce_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                              tmp_quantity * (1 + query.over_percentage / 100)))
                     stock.reduce_stock(query.stock_name, tmp_quantity)
 
                     query.player.messages.append("-> BOUGHT ONLY " + str(tmp_quantity) + " OF " + str(query.stock_name) +
@@ -152,15 +152,15 @@ def process_queries():
         if query.flogged:
             if 0 < query.quantity <= query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.quantity)
-                query.player.add_money(stock.get_stock_price(query.stock_name) * query.quantity)
+                query.player.add_money(math.floor(stock.get_stock_price(query.stock_name) * query.quantity))
                 stock.add_stock(query.stock_name, query.quantity)
 
                 query.player.messages.append("-> SOLD " + str(query.quantity) + " OF " + str(query.stock_name))
 
             elif query.quantity > query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.player.get_stock_quantity(query.stock_name))
-                query.player.add_money(stock.get_stock_price(query.stock_name) *
-                                       query.player.get_stock_quantity(query.stock_name))
+                query.player.add_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                       query.player.get_stock_quantity(query.stock_name)))
                 stock.add_stock(query.stock_name, query.player.get_stock_quantity(query.stock_name))
 
                 query.player.messages.append("-> SOLD ONLY " + str(query.player.get_stock_quantity(query.stock_name)) +
@@ -172,14 +172,14 @@ def process_queries():
         else:
             if 0 < query.quantity <= query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.quantity)
-                query.player.add_money(stock.get_stock_price(query.stock_name) * query.quantity * 0.85)
+                query.player.add_money(math.floor(stock.get_stock_price(query.stock_name) * query.quantity * 0.85))
 
                 query.player.messages.append("-> FLOGGED " + str(query.quantity) + " OF " + str(query.stock_name))
 
             elif query.quantity > query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.player.get_stock_quantity(query.stock_name))
-                query.player.add_money(stock.get_stock_price(query.stock_name) *
-                                       query.player.get_stock_quantity(query.stock_name) * 0.85)
+                query.player.add_money(math.floor(stock.get_stock_price(query.stock_name) *
+                                       query.player.get_stock_quantity(query.stock_name) * 0.85))
 
                 query.player.messages.append("-> FLOGGED ONLY " +
                                              str(query.player.get_stock_quantity(query.stock_name)) + " OF " +
