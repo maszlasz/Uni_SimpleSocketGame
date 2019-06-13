@@ -31,6 +31,36 @@ except socket.error as ex:
 s.listen(8)
 
 
+def print_rules():
+    return "RULES:\n" \
+           "THERE ARE " + str(rounds_total) + " ROUNDS, EACH LASTS " + str(round_time) +\
+           " SECONDS. BETWEEN EACH ROUND THERE IS A BREAK WHICH LASTS " + str(break_time*2) +\
+           " SECONDS. THE PRICE OF EACH OF THE RESOURCES CHANGES BETWEEN THE ROUNDS BASED ON HOW MUCH OF IT\n" \
+           "IS THERE AVAILABLE (COMPARED TO THE INITIAL AMOUNT), WHICH IS THEN MULTIPLIED BY A MARKET FLUCTUATION\n" \
+           "(100% + RANDOM PERCENTAGE BETWEEN -20 AND 20)" \
+           "\nYOU CAN USE THE FOLLOWING COMMANDS (ASSUMING YOU HAVE ENOUGH MONEY, RESOURCES ETC):\n\n" \
+           "BUY \"RESOURCE\" \"AMOUNT\" [\"ADDITIONAL PERCENTAGE\"] - BUY THE AMOUNT OF A RESOURCE. IF YOU DON'T WANT" \
+           " ANYONE ELSE TO BUY IT BEFORE YOU,\nYOU CAN SPECIFY HOW MUCH MORE " \
+           "ARE YOU WILLING TO PAY (IN PERCENTAGES). " \
+           "BUY ORDERS OF ALL THE PLAYERS ARE SORTED IN THE DESCENDING ORDER \n" \
+           "FIRST BY THE [\"ADDITIONAL PERCENTAGE\"] - DEFAULTS TO 0 - AND THEN BY THE " \
+           "SPECIFIED AMOUNT\n\n" \
+           "SELL \"RESOURCE\" \"QUANTITY\" - SELL THE AMOUNT OF A RESOURCE (FOR THE MARKET PRICE)\n\n" \
+           "FLOG \"RESOURCE\" \"QUANTITY\" - SAME AS \"SELL\" BUT THE RESOURCE DOESN'T GO BACK TO THE MARKET - " \
+           "AT THE COST OF GETTING ONLY 85% OF THE MARKET PRICE\n\n" \
+           "...YOU CAN ALSO USE ABILITIES (EACH ONE HAS AN ATTACHED COST) SUCH AS:\n\n" \
+           "FUTURE - SEE THE FLUCTUATIONS OF RESOURCE PRICES THAT WILL TAKE PLACE AFTER THE NEXT ROUND -" \
+           "COST: 200\n\n" \
+           "SPY - SEE POSSESSIONS AND MONEY OF ALL OTHER PLAYERS. THEY GET A NOTIFICATION THAT SOMEONE HAS SPIED ON THEM - COST: 400 \n\n" \
+           "SHORTEN - SHORTEN THE NEXT ROUND BY 75% (CAN ONLY BE SHORTENED ONCE) - COST: 600\n\n" \
+           "DESTROY - DESTROY 25% OF ALL RESOURCES OF ALL THE PLAYERS (INCLUDING YOURS). THEY GET A NOTIFICATION - " \
+           "COST: 1000\n\n" \
+           "ALL COMMANDS ARE EXECUTED BETWEEN THIS ROUND AND THE NEXT ONE IN THIS ORDER: \n" \
+           "BUY -> SELL | FLOG -> ABILITIES. YOU CAN ALSO IMMEDIATLY VIEW THE RULES BY TYPING \"RULES\". \n" \
+           "PLAYERS THAT HAVE THE MOST MONEY ON THEM (NORMAL MONEY + THE SUM OF ALL THEIR RESOURCES SOLD AT THE" \
+           "CURRENT PRICE) WIN."
+
+
 def calculate_percentages():
     result = []
     for i in range(len(stock.stock)):
@@ -142,14 +172,14 @@ def process_queries():
         else:
             if 0 < query.quantity <= query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.quantity)
-                query.player.add_money(stock.get_stock_price(query.stock_name) * query.quantity * 0.8)
+                query.player.add_money(stock.get_stock_price(query.stock_name) * query.quantity * 0.85)
 
                 query.player.messages.append("-> FLOGGED " + str(query.quantity) + " OF " + str(query.stock_name))
 
             elif query.quantity > query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.player.get_stock_quantity(query.stock_name))
                 query.player.add_money(stock.get_stock_price(query.stock_name) *
-                                       query.player.get_stock_quantity(query.stock_name) * 0.8)
+                                       query.player.get_stock_quantity(query.stock_name) * 0.85)
 
                 query.player.messages.append("-> FLOGGED ONLY " +
                                              str(query.player.get_stock_quantity(query.stock_name)) + " OF " +
@@ -164,15 +194,15 @@ def process_queries():
     while not queue_ability.empty():
         query = queue_ability.get()
         if query.kind == "FUTURE":
-            if query.player.money >= 800:
-                query.player.reduce_money(800)
+            if query.player.money >= 200:
+                query.player.reduce_money(200)
                 query.player.messages.append(print_percentages())
             else:
                 query.player.messages.append("YOU DIDN'T HAVE ENOUGH MONEY FOR ABILITY: FUTURE")
 
         elif query.kind == "SPY":
-            if query.player.money >= 500:
-                query.player.reduce_money(500)
+            if query.player.money >= 400:
+                query.player.reduce_money(400)
 
                 query.player.messages.append("SPY RESULTS:")
 
@@ -185,8 +215,8 @@ def process_queries():
                 query.player.messages.append("YOU DIDN'T HAVE ENOUGH MONEY FOR ABILITY: SPY")
 
         elif query.kind == "DESTROY":
-            if query.player.money >= 2000:
-                query.player.reduce_money(2000)
+            if query.player.money >= 1000:
+                query.player.reduce_money(1000)
 
                 for player in stock.players:
                     if player != query.player:
@@ -198,8 +228,8 @@ def process_queries():
                 query.player.messages.append("YOU DIDN'T HAVE ENOUGH MONEY FOR ABILITY: DESTROY")
 
         elif query.kind == "SHORTEN":
-            if query.player.money >= 1500:
-                query.player.reduce_money(1500)
+            if query.player.money >= 600:
+                query.player.reduce_money(600)
 
                 round_shortened = True
 
@@ -243,31 +273,31 @@ def add_query(player, data):
                 return "ERROR: STOCK MUST EXIST, QUANTITY MUST BE GT 0"
 
         elif len(data) == 1 and data[0] == "FUTURE":
-            if player.money >= 800:
+            if player.money >= 200:
                 queue_ability.put(QueryAbility(player, "FUTURE"))
             else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(800) + ")"
+                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(200) + ")"
 
         elif len(data) == 1 and data[0] == "DESTROY":
-            if player.money >= 2000:
+            if player.money >= 1000:
                 queue_ability.put(QueryAbility(player, "DESTROY"))
             else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(2000) + ")"
+                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(1000) + ")"
 
         elif len(data) == 1 and data[0] == "SPY":
-            if player.money >= 500:
+            if player.money >= 400:
                 queue_ability.put(QueryAbility(player, "SPY"))
             else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(500) + ")"
+                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(400) + ")"
 
         elif len(data) == 1 and data[0] == "SHORTEN":
-            if player.money >= 1500:
+            if player.money >= 600:
                 queue_ability.put(QueryAbility(player, "SHORTEN"))
             else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(1500) + ")"
+                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(600) + ")"
 
         elif len(data) == 1 and data[0] == "RULES":
-            return "RULES HERE"
+            return print_rules()
 
         else:
             return "COMMAND NOT RECOGNISED"
@@ -282,7 +312,7 @@ def client_thread(player, conn, lock, q):
     conn.setblocking(False)
     global clients_current
 
-    conn.sendall("RULES HERE".encode())
+    conn.sendall(print_rules().encode())
     while True:
 
         try:
