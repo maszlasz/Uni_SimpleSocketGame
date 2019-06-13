@@ -8,25 +8,23 @@ class Player:
 
     def print(self):
         result = "\n"
-        result += (" MONEY:  " + str(self.money) + " ").center(100, "*") + "\n"
-        result += "*" * 100 + "\n"
-        result += "*" + "STOCK".ljust(48) + "*" + "QUANTITY".center(49) + "*\n"
-        result += "*" * 100 + "\n"
+        result += (" MONEY:  " + str(self.money) + " ").center(100, "*") + " \n"
+        result += "*" * 100 + " \n"
+        result += "*" + "STOCK".ljust(48) + "*" + "QUANTITY".center(49) + "* \n"
+        result += "*" * 100 + " \n"
 
         for stock in self.stock:
-            result += "*" + str(stock[0]).ljust(48) + "*" + str(stock[1]).center(49) + "*\n"
-            result += "*" * 100 + "\n"
+            result += "*" + str(stock[0]).ljust(48) + "*" + str(stock[1]).center(49) + "* \n"
+            result += "*" * 100 + " \n"
 
-        result += "\n"
+        result += " \n"
 
         return result
 
     def get_stock(self, stock_name):
         for stock in self.stock:
             if stock[0] == stock_name:
-                print("YES:  " + stock[0])
                 return stock
-        print("NOOO:  " + stock_name)
 
     def get_stock_quantity(self, stock_name):
         return self.get_stock(stock_name)[1]

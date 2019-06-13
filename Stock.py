@@ -76,15 +76,16 @@ class Stock:
 
     def print(self):
         result = "\n"
-        result += " STOCK EXCHANGE ".center(100, "*") + "\n"
-        result += "*" * 100 + "\n"
-        result += "*" + "STOCK".ljust(32) + "*" + "PRICE".center(32) + "*" + "QUANTITY".center(32) + "*\n"
-        result += "*" * 100 + "\n"
+        result += " STOCK EXCHANGE ".center(100, "*") + " \n"
+        result += "*" * 100 + " \n"
+        result += "*" + "STOCK".ljust(32) + "*" + "PRICE".center(32) + "*" + "QUANTITY".center(32) + "* \n"
+        result += "*" * 100 + " \n"
 
         for stock in self.stock:
-            result += "*" + str(stock[0]).ljust(32) + "*" + str(stock[2]).center(32) + "*" + str(stock[1]).center(32) + "*\n"
-            result += "*" * 100 + "\n"
+            result += "*" + str(stock[0]).ljust(32) + "*" + str(stock[2]).center(32) + "*" + str(stock[1]).center(32) +\
+                      "* \n"
+            result += "*" * 100 + " \n"
 
-        result += "\n"
+        result += " \n"
 
         return result
