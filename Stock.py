@@ -48,10 +48,10 @@ class Stock:
         i = 0
         for stock in self.stock:
             if stock[1] <= stock[3]:
-                stock[2] = math.floor((stock[4] + ((stock[1] - stock[3]) * (stock[1] - stock[3])) * 0.01) *
+                stock[2] = math.floor((stock[2] + ((stock[1] - stock[3]) * (stock[1] - stock[3])) * 0.25) *
                                       (1 + percentages[i]/100))
             else:
-                stock[2] = math.floor((stock[4] - ((stock[1] - stock[3]) * (stock[1] - stock[3])) * 0.01) *
+                stock[2] = math.floor((stock[2] - ((stock[1] - stock[3]) * (stock[1] - stock[3])) * 0.25) *
                                       (1 + percentages[i]/100))
 
             i += 1
@@ -84,7 +84,7 @@ class Stock:
         for stock in self.stock:
             result += "*" + str(stock[0]).ljust(32) + "*" + str(stock[2]).center(32) + "*" + str(stock[1]).center(32) +\
                       "* \n"
-            result += "*" * 100 + " \n"
+            result += "*" * 100 + "\n"
 
         result += " \n"
 

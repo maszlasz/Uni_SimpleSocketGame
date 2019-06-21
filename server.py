@@ -18,7 +18,7 @@ try:
     print("SOCKET CREATED")
 except socket.error as ex:
     print("COULD NOT CREATE SOCKET. ERROR: ", ex)
-    sys.exit(0)
+    sys.exit(1)
 
 
 try:
@@ -26,15 +26,15 @@ try:
     print("SOCKET BOUND TO PORT: " + str(port))
 except socket.error as ex:
     print("COULD NOT BIND SOCKET. ERROR: ", ex)
-    sys.exit(0)
+    sys.exit(1)
 
 s.listen(8)
 
 
 def print_rules():
-    return "RULES:\n" \
+    return "\nRULES:\n" \
            "THERE ARE " + str(rounds_total) + " ROUNDS, EACH LASTS " + str(round_time) +\
-           " SECONDS. BETWEEN EACH ROUND THERE IS A BREAK WHICH LASTS " + str(break_time*2) + " SECONDS. " \
+           " SECONDS. BETWEEN EACH ROUND THERE IS A BREAK WHICH LASTS " + str(break_time+5) + " SECONDS. " \
            "THE PRICE OF EACH OF THE RESOURCES CHANGES BETWEEN THE ROUNDS BASED ON HOW MUCH OF IT\n" \
            "IS THERE AVAILABLE (COMPARED TO THE INITIAL AMOUNT), WHICH IS THEN MULTIPLIED BY A MARKET FLUCTUATION\n" \
            "(100% + RANDOM PERCENTAGE BETWEEN -20 AND 20)" \
@@ -48,7 +48,7 @@ def print_rules():
            "SELL \"RESOURCE\" \"QUANTITY\" - SELL THE AMOUNT OF A RESOURCE (FOR THE MARKET PRICE)\n\n" \
            "FLOG \"RESOURCE\" \"QUANTITY\" - SAME AS \"SELL\" BUT THE RESOURCE DOESN'T GO BACK TO THE MARKET - " \
            "AT THE COST OF GETTING ONLY 85% OF THE MARKET PRICE \n\n" \
-           "...YOU CAN ALSO USE ABILITIES (EACH ONE HAS AN ATTACHED COST) SUCH AS: \n\n" \
+           "  YOU CAN ALSO USE ABILITIES (EACH ONE HAS AN ATTACHED COST) SUCH AS: \n\n" \
            "FUTURE - SEE THE FLUCTUATIONS OF RESOURCE PRICES THAT WILL TAKE PLACE AFTER THE NEXT ROUND - " \
            "COST: 200\n\n" \
            "SPY - SEE POSSESSIONS AND MONEY OF ALL OTHER PLAYERS. THEY GET A NOTIFICATION " \

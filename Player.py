@@ -15,7 +15,7 @@ class Player:
 
         for stock in self.stock:
             result += "*" + str(stock[0]).ljust(48) + "*" + str(stock[1]).center(49) + "* \n"
-            result += "*" * 100 + " \n"
+            result += "*" * 100 + "\n"
 
         result += " \n"
 
