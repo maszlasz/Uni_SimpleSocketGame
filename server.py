@@ -2,7 +2,6 @@ import socket
 import sys
 import threading
 import queue
-import math
 import random
 from time import sleep
 from timeit import default_timer as timer
@@ -28,16 +27,16 @@ except socket.error as ex:
     print("COULD NOT BIND SOCKET. ERROR: ", ex)
     sys.exit(1)
 
-s.listen(8)
+s.listen()
 
 
 def print_rules():
-    return "\nRULES:\n" \
+    return "\n-> RULES:\n" \
            "THERE ARE " + str(rounds_total) + " ROUNDS, EACH LASTS " + str(round_time) +\
            " SECONDS. BETWEEN EACH ROUND THERE IS A BREAK WHICH LASTS " + str(break_time+5) + " SECONDS. " \
            "THE PRICE OF EACH OF THE RESOURCES CHANGES BETWEEN THE ROUNDS BASED ON HOW MUCH OF IT\n" \
            "IS THERE AVAILABLE (COMPARED TO THE INITIAL AMOUNT), WHICH IS THEN MULTIPLIED BY A MARKET FLUCTUATION\n" \
-           "(100% + RANDOM PERCENTAGE BETWEEN -20 AND 20)" \
+           "(100% + RANDOM PERCENTAGE BETWEEN -10 AND 10)" \
            "\nYOU CAN USE THE FOLLOWING COMMANDS (ASSUMING YOU HAVE ENOUGH MONEY, RESOURCES ETC):\n\n" \
            "BUY \"RESOURCE\" \"AMOUNT\" [\"ADDITIONAL PERCENTAGE\"] - BUY THE AMOUNT OF A RESOURCE. IF YOU DON'T WANT" \
            " ANYONE ELSE TO BUY IT BEFORE YOU,\nYOU CAN SPECIFY HOW MUCH MORE " \
@@ -65,7 +64,7 @@ def print_rules():
 def calculate_percentages():
     result = []
     for i in range(len(stock.stock)):
-        result.append(random.randint(-20, 21))
+        result.append(random.randint(-10, 11))
 
     return result
 
@@ -150,7 +149,7 @@ def process_queries():
     while not queue_sell.empty():
         query = queue_sell.get()
 
-        if query.flogged:
+        if not query.flogged:
             if 0 < query.quantity <= query.player.get_stock_quantity(query.stock_name):
                 query.player.reduce_stock(query.stock_name, query.quantity)
                 query.player.add_money(math.floor(stock.get_stock_price(query.stock_name) * query.quantity))
@@ -255,6 +254,7 @@ def add_query(player, data):
 
             else:
                 return "ERROR: STOCK MUST EXIST, QUANTITY MUST BE GT 0"
+
         elif data[0] == "SELL":
             if stock.stock_exists(data[1]) and 0 < int(data[2]):
                 if player.get_stock_quantity(data[1]) >= int(data[2]):
@@ -264,38 +264,39 @@ def add_query(player, data):
             else:
                 return "ERROR: STOCK MUST EXIST, QUANTITY MUST BE GT 0"
 
-        elif data[0] == "FLOG":
-            if stock.stock_exists(data[1]) and 0 < int(data[2]):
-                if player.get_stock_quantity(data[1]) >= int(data[2]):
-                    queue_sell.put(QuerySell(player, data[1], int(data[2])), True)
+        elif special_abilities:
+            if data[0] == "FLOG":
+                if stock.stock_exists(data[1]) and 0 < int(data[2]):
+                    if player.get_stock_quantity(data[1]) >= int(data[2]):
+                        queue_sell.put(QuerySell(player, data[1], int(data[2]), True))
+                    else:
+                        return "YOU DON'T HAVE ENOUGH OF THAT TO FLOG IT IN THE DESIRED QUANTITY"
                 else:
-                    return "YOU DON'T HAVE ENOUGH OF THAT TO FLOG IT IN THE DESIRED QUANTITY"
-            else:
-                return "ERROR: STOCK MUST EXIST, QUANTITY MUST BE GT 0"
+                    return "ERROR: STOCK MUST EXIST, QUANTITY MUST BE GT 0"
 
-        elif len(data) == 1 and data[0] == "FUTURE":
-            if player.money >= 200:
-                queue_ability.put(QueryAbility(player, "FUTURE"))
-            else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(200) + ")"
+            elif len(data) == 1 and data[0] == "FUTURE":
+                if player.money >= 200:
+                    queue_ability.put(QueryAbility(player, "FUTURE"))
+                else:
+                    return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(200) + ")"
 
-        elif len(data) == 1 and data[0] == "DESTROY":
-            if player.money >= 1000:
-                queue_ability.put(QueryAbility(player, "DESTROY"))
-            else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(1000) + ")"
+            elif len(data) == 1 and data[0] == "DESTROY":
+                if player.money >= 1000:
+                    queue_ability.put(QueryAbility(player, "DESTROY"))
+                else:
+                    return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(1000) + ")"
 
-        elif len(data) == 1 and data[0] == "SPY":
-            if player.money >= 400:
-                queue_ability.put(QueryAbility(player, "SPY"))
-            else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(400) + ")"
+            elif len(data) == 1 and data[0] == "SPY":
+                if player.money >= 400:
+                    queue_ability.put(QueryAbility(player, "SPY"))
+                else:
+                    return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(400) + ")"
 
-        elif len(data) == 1 and data[0] == "SHORTEN":
-            if player.money >= 600:
-                queue_ability.put(QueryAbility(player, "SHORTEN"))
-            else:
-                return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(600) + ")"
+            elif len(data) == 1 and data[0] == "SHORTEN":
+                if player.money >= 600:
+                    queue_ability.put(QueryAbility(player, "SHORTEN"))
+                else:
+                    return "YOU DON'T HAVE ENOUGH MONEY FOR THAT ABILITY (" + str(600) + ")"
 
         elif len(data) == 1 and data[0] == "RULES":
             return print_rules()
@@ -305,6 +306,9 @@ def add_query(player, data):
 
     except IndexError:
         return "NOT ENOUGH ARGUMENTS"
+
+    except ValueError:
+        return "MUST BE A NUMBER"
 
     return "OK"
 
@@ -355,6 +359,7 @@ def client_thread(player, conn, lock, q):
         conn.sendall(("-> ROUND " + str(rounds_current) + " START").encode())
 
         # ROUND
+        conn.sendall(("-> PLAYER " + str(player.name) + ":\n").encode())
         if rounds_current > 1:
             conn.sendall("-> MESSAGES:\n".encode())
             for message in player.messages:
@@ -416,6 +421,7 @@ def connect_clients():
     global threads
     global queues
     global stock
+    global special_abilities
 
     thread_lock = threading.Lock()
 
@@ -426,13 +432,28 @@ def connect_clients():
             print("CONNECTED TO " + address[0] + ":" + str(address[1]))
 
             if is_first_client:
-                thread_conn.sendall("-> YOU'RE CONNECTED TO THE SERVER. ENTER THE NUMBER OF PLAYERS (2-8)".encode())
+                thread_conn.sendall("-> YOU'RE CONNECTED TO THE SERVER. DO YOU WANT TO PLAY WITH SPECIAL ABILITIES ON? "
+                                    "YES/NO".encode())
+                while True:
+                    response = thread_conn.recv(1024).decode().upper()
+                    if response == "YES":
+                        special_abilities = True
+                        thread_conn.sendall("-> OK".encode())
+                        break
+                    elif response == "NO":
+                        special_abilities = False
+                        thread_conn.sendall("-> OK".encode())
+                        break
+                    else:
+                        thread_conn.sendall("-> YES/NO".encode())
+
+                thread_conn.sendall("-> ENTER THE NUMBER OF PLAYERS (AT LEAST 2)".encode())
                 while True:
                     try:
                         clients_total = int(thread_conn.recv(1024).decode())
                         clients_left = clients_total
 
-                        if 2 <= clients_total <= 8:
+                        if 2 <= clients_total:
                             stock = Stock(clients_total)
                             thread_conn.sendall("-> OK, WAITING FOR OTHERS. TYPE 'START' WHEN YOU'RE READY".encode())
                             break
@@ -476,6 +497,7 @@ queues = []
 round_time = 20
 break_time = 5
 round_shortened = False
+special_abilities = None
 
 queue_buy = queue.PriorityQueue()
 queue_sell = queue.Queue()
@@ -539,5 +561,4 @@ while True:
 for t in threads:
     t.join()
 
-print("THE END")
 exit(0)

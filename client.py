@@ -6,7 +6,7 @@ s = socket(AF_INET, SOCK_STREAM)
 
 try:
     # s.connect((gethostbyname(gethostname()), 6666))
-    s.connect(("", 6666))
+    s.connect(("192.168.0.191", 6666))
 except error:
     exit(1)
 
